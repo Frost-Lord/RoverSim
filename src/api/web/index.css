@@ -1,0 +1,116 @@
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    background-color: #151820;
+    overflow: hidden;
+}
+
+#container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+#codebox-container {
+    display: flex;
+    width: 50%;
+    background-color: #151820;
+    color: #ffffff;
+    font-family: monospace;
+    box-sizing: border-box;
+    overflow: hidden;
+    position: relative;
+}
+
+#line-numbers {
+    background-color: #1d212b;
+    padding: 10px;
+    text-align: right;
+    user-select: none;
+    overflow: hidden;
+    white-space: nowrap;
+    font-family: monospace;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+#line-numbers span {
+    display: block;
+    line-height: 1.5;
+    color: #5c6370;
+}
+
+#codebox-wrapper {
+    position: relative;
+    flex-grow: 1;
+    padding-left: 40px;
+    overflow: hidden;
+    z-index: 0;
+}
+
+#codebox, #highlighted-code {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 10px;
+    margin: 0;
+    font-family: monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    border: none;
+    resize: none;
+    outline: none;
+    overflow: auto;
+}
+
+#codebox {
+    background-color: transparent;
+    color: transparent;
+    user-select: none;
+    z-index: 1;
+    caret-color: #b3abab;
+}
+
+#highlighted-code {
+    z-index: 2;
+    pointer-events: none;
+}
+
+#codebox::-webkit-scrollbar {
+    width: 8px;
+}
+
+#codebox::-webkit-scrollbar-thumb {
+    background-color: #4b4f58;
+    border-radius: 10px;
+}
+
+#divider {
+    width: 10px;
+    background-color: #2c303a;
+    cursor: col-resize;
+}
+
+#threejs-container {
+    flex-grow: 1;
+    background-color: #20232a;
+}
+
+.keyword {
+    color: #c678dd;
+}
+
+.command {
+    color: #61afef;
+}
+
+.register {
+    color: #e06c75;
+}
+
+.comment {
+    color: #5c6370;
+}
