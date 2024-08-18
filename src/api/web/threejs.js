@@ -12,8 +12,7 @@ function executeCode(lines) {
     const labels = {};
     const commands = [];
 
-    // Parse labels and commands in one pass
-    lines.forEach((line, index) => {
+    lines.forEach((line) => {
         const trimmedLine = line.trim();
         if (trimmedLine.endsWith(":")) {
             labels[trimmedLine.slice(0, -1)] = commands.length;
@@ -40,13 +39,25 @@ function executeCode(lines) {
                 const value = parseInt(args[1], 10);
                 registers[reg] = value;
                 console.log(`SET ${reg} to ${value}`);
-                index++; // Move to the next command
+                index++;
+                break;
+
+            case 'TURN':
+                const direction = args[0];
+                if (direction === 'R') {
+                    turnRight();
+                } else if (direction === 'L') {
+                    turnLeft();
+                } else {
+                    console.log(`Unknown direction: ${direction}`);
+                }
+                index++;
                 break;
 
             case 'FWD':
                 moveForward(registers[args[0]]);
                 console.log(`FWD ${registers[args[0]]}`);
-                index++; // Move to the next command
+                index++;
                 break;
 
             case 'ADD':
@@ -54,7 +65,15 @@ function executeCode(lines) {
                 const valueAdd = parseInt(args[1], 10);
                 registers[regAdd] += valueAdd;
                 console.log(`ADD ${valueAdd} to ${regAdd}, now ${registers[regAdd]}`);
-                index++; // Move to the next command
+                index++;
+                break;
+
+            case 'REM':
+                const regRem = args[0];
+                const valueRem = parseInt(args[1], 10);
+                registers[regRem] -= valueRem;
+                console.log(`REM ${valueRem} from ${regRem}, now ${registers[regRem]}`);
+                index++;
                 break;
 
             case 'JEQ':
@@ -66,7 +85,7 @@ function executeCode(lines) {
                     index = labels[label];
                 } else {
                     console.log(`Condition not met, continuing loop`);
-                    index = labels['LOOP']; // Jump back to the start of the loop
+                    index = labels['LOOP'];
                 }
                 break;
 
@@ -74,7 +93,7 @@ function executeCode(lines) {
                 stopMovement();
                 endLoop = true;
                 console.log("STOP");
-                return; // Exit execution
+                return;
 
             case 'JMP':
                 const jumpLabel = args[0];
@@ -85,11 +104,11 @@ function executeCode(lines) {
             case 'END':
                 endLoop = true;
                 console.log("END");
-                return; // Exit execution
+                return;
 
             default:
                 console.log(`Unknown instruction: ${instruction}`);
-                index++; // Move to the next command
+                index++;
                 break;
         }
 
@@ -115,6 +134,20 @@ function moveForward(steps) {
         console.log(`Rover moved forward ${moveDistance}`);
     } else {
         console.log("Rover cannot move. Speed or steps is 0.");
+    }
+}
+
+function turnRight() {
+    if (rover) {
+        rover.rotation.y -= Math.PI / 2;
+        console.log("Rover turned right");
+    }
+}
+
+function turnLeft() {
+    if (rover) {
+        rover.rotation.y += Math.PI / 2;
+        console.log("Rover turned left");
     }
 }
 

@@ -19,7 +19,7 @@ function highlightCode() {
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
-        .replace(/(FWD|TURN|ADD|CMP|JEQ|JMP|SET|REM)/g, '<span class="command">$1</span>')
+        .replace(/(FWD|TURN|ADD|JEQ|JMP|SET|REM)/g, '<span class="command">$1</span>')
         
         .replace(/(START|END|STOP|LOOP|STOP_MOVE)/g, '<span class="keyword">$1</span>')
         .replace(/(R\d+)/g, '<span class="register">$1</span>')

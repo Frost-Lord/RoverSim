@@ -25,23 +25,19 @@
    - **Description**: Removes (subtracts) a value from the specified register.
    - **Example**: `REM R0, 1` decreases the value in `R0` by `1`.
 
-### 6. **CMP Register, Value**
-   - **Description**: Compares the value in the specified register with a given value.
-   - **Example**: `CMP R0, 5` compares the value in `R0` with `5`.
-
-### 7. **JEQ Label**
+### 6. **JEQ Label**
    - **Description**: Jumps to the specified label if the comparison (`CMP`) was equal.
    - **Example**: `JEQ STOP_MOVE` jumps to `STOP_MOVE` if the previous comparison was equal.
 
-### 8. **JEQ Label, Register, Value/Register**
+### 7. **JEQ Label, Register, Value/Register**
    - **Description**: Jumps to the specified label if the value in the register is equal to the given value.
    - **Example**: `JEQ STOP_MOVE, R1, 100` jumps to `STOP_MOVE` if the value in `R1` is `100`.
 
-### 9. **STOP**
+### 8. **STOP**
    - **Description**: Stops the rover's movement.
    - **Example**: `STOP` stops the rover.
 
-### 10. **JMP Label**
+### 9. **JMP Label**
    - **Description**: Unconditionally jumps to the specified label.
    - **Example**: `JMP END` jumps to the label `END`.
 
@@ -68,8 +64,7 @@ START:
     ADD R0, 2      ; Increase R0 by 2 units
     REM R0, 1      ; Remove 1 from the register
     FWD R0         ; Move forward
-    CMP R0, 5      ; Compare speed with 5
-    JEQ STOP_MOVE  ; If speed is 5, jump to STOP_MOVE
+    JMP STOP_MOVE  ; Jump to STOP_MOVE
 
 STOP_MOVE:
     STOP           ; Stop the rover
@@ -77,15 +72,19 @@ STOP_MOVE:
 
 END:
     ; End of program
+```
 
 ### Program 2: Loop Until Condition is Met
 ```plaintext
 START:
-    SET R0, 3               ; Set R0 to 3
-    SET R1, 1               ; Set R1 to 1
-    FWD R0                  ; Move forward
+    SET R0, 1               ; Set the R0 to 1
+    SET R1, 1               ; Set the R1 to 1
+    JMP LOOP                ; Jump to loop
+
+LOOP:
+    FWD R0                  ; Move forward by R0 value
     ADD R1, 1               ; Add 1 to R1
-    JEQ STOP_MOVE, R1, 100  ; If R1 == 100, jump to STOP_MOVE
+    JEQ STOP_MOVE, R1, 10  ; If R1 == 10 jump to STOP_MOVE else go through the loop again
 
 STOP_MOVE:
     STOP           ; Stop the rover
