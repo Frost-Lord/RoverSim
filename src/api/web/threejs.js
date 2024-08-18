@@ -1,4 +1,5 @@
 const threejsContainer = document.getElementById('threejs-container');
+const divider = document.getElementById('divider');
 
 function runCode() {
     const code = codebox.value;
@@ -16,7 +17,7 @@ function parseCode(lines) {
     lines.forEach((line, index) => {
         const trimmedLine = line.trim();
         if (trimmedLine.endsWith(":")) {
-            labels[trimmedLine.slice(0, -1)] = index;
+            labels[trimmedLine.slice(0, -1)] = commands.length;
         }
     });
 
@@ -28,133 +29,103 @@ function parseCode(lines) {
             if (match) {
                 const reg = match[1];
                 const value = parseInt(match[2], 10);
-                registers[reg] = value;
-                commands.push(`setSpeed(${registers[reg]});`);
+                commands.push(() => {
+                    registers[reg] = value;
+                    console.log(`SET ${reg} to ${value}`);
+                });
             }
         } else if (trimmedLine.startsWith("FWD")) {
             const match = trimmedLine.match(/FWD\s+(R\d+)/);
             if (match) {
                 const reg = match[1];
-                commands.push(`moveForward(${registers[reg]});`);
-            } else {
-                commands.push("moveForward();");
+                commands.push(() => {
+                    moveForward(registers[reg]);
+                    console.log(`FWD ${registers[reg]}`);
+                });
             }
-        } else if (trimmedLine.startsWith("TURN R")) {
-            commands.push("turnRight();");
-        } else if (trimmedLine.startsWith("TURN L")) {
-            commands.push("turnLeft();");
         } else if (trimmedLine.startsWith("ADD")) {
             const match = trimmedLine.match(/ADD\s+(R\d+),\s*(\d+)/);
             if (match) {
                 const reg = match[1];
                 const value = parseInt(match[2], 10);
-                if (registers[reg] !== undefined) {
+                commands.push(() => {
                     registers[reg] += value;
-                    commands.push(`setSpeed(${registers[reg]});`);
-                } else {
-                    console.error(`Register ${reg} not initialized.`);
-                }
-            }
-        } else if (trimmedLine.startsWith("REM")) {
-            const match = trimmedLine.match(/REM\s+(R\d+),\s*(\d+)/);
-            if (match) {
-                const reg = match[1];
-                const value = parseInt(match[2], 10);
-                if (registers[reg] !== undefined) {
-                    registers[reg] -= value;
-                    commands.push(`setSpeed(${registers[reg]});`);
-                } else {
-                    console.error(`Register ${reg} not initialized.`);
-                }
-            }
-        } else if (trimmedLine.startsWith("CMP")) {
-            const match = trimmedLine.match(/CMP\s+(R\d+),\s*(\d+)/);
-            if (match) {
-                const reg = match[1];
-                const value = parseInt(match[2], 10);
-                commands.push(`compareSpeed(${registers[reg]}, ${value});`);
+                    console.log(`ADD ${value} to ${reg}, now ${registers[reg]}`);
+                });
             }
         } else if (trimmedLine.startsWith("JEQ")) {
-            const label = trimmedLine.split(' ')[1];
-            commands.push(`if (compareSpeed(${registers["R0"]}, 5)) { jumpToLabel('${label}', labels); return; }`);
+            const match = trimmedLine.match(/JEQ\s+(\w+),\s*(R\d+),\s*(\d+)/);
+            if (match) {
+                const label = match[1];
+                const reg = match[2];
+                const value = parseInt(match[3], 10);
+                commands.push(() => {
+                    if (registers[reg] === value) {
+                        index = labels[label] - 1; // Adjust index since it will increment after command execution
+                        console.log(`JEQ to ${label}`);
+                    }
+                });
+            }
         } else if (trimmedLine === "STOP") {
-            commands.push("stopMovement();");
+            commands.push(() => {
+                stopMovement();
+                endLoop = true;
+                console.log("STOP");
+            });
         } else if (trimmedLine.startsWith("JMP")) {
             const label = trimmedLine.split(' ')[1];
-            commands.push(`jumpToLabel('${label}', labels);`);
+            commands.push(() => {
+                index = labels[label] - 1; // Adjust index since it will increment after command execution
+                console.log(`JMP to ${label}`);
+            });
+        } else if (trimmedLine === "END") {
+            commands.push(() => {
+                endLoop = true;
+                console.log("END");
+            });
         }
     });
 
-    return { commands, labels };
+    return { commands, labels, registers };
 }
 
 function executeCommands(parsedCode) {
-    const { commands, labels } = parsedCode;
+    const { commands } = parsedCode;
     let index = 0;
-
-    function jumpToLabel(label) {
-        if (labels[label] !== undefined) {
-            index = labels[label];
-            return true;
-        }
-        return false;
-    }
+    let endLoop = false;
 
     function executeNextCommand() {
-        if (index >= commands.length) {
+        if (index >= commands.length || endLoop) {
             return;
         }
 
-        const cmd = commands[index];
+        const currentCommand = commands[index];
+        currentCommand();
 
-        if (cmd.includes('jumpToLabel')) {
-            const label = cmd.match(/'(.+)'/)[1];
-            if (jumpToLabel(label)) {
-                return setTimeout(executeNextCommand, 500); 
-            }
-        } else {
-            eval(cmd);
+        if (!endLoop) {
             index++;
+            setTimeout(executeNextCommand, 500);
         }
-
-        setTimeout(executeNextCommand, 500);
     }
 
     executeNextCommand();
 }
 
-let speed = 0;
+let speed = 1;
 
 function setSpeed(value) {
     speed = value;
     console.log(`Speed set to ${speed}`);
 }
 
-function moveForward(speed) {
-    if (rover && speed > 0) {
-        rover.position.z -= speed * 0.1;
-        console.log("Rover moved forward");
+function moveForward(steps) {
+    if (rover && steps > 0) {
+        const moveDistance = steps * speed;
+        rover.position.z -= moveDistance;
+        console.log(`Rover moved forward ${moveDistance}`);
     } else {
-        console.log("Rover cannot move. Speed is 0.");
+        console.log("Rover cannot move. Speed or steps is 0.");
     }
-}
-
-function turnRight() {
-    if (rover) {
-        rover.rotation.y -= Math.PI / 2;
-        console.log("Rover turned right");
-    }
-}
-
-function turnLeft() {
-    if (rover) {
-        rover.rotation.y += Math.PI / 2;
-        console.log("Rover turned left");
-    }
-}
-
-function compareSpeed(registerValue, cmpValue) {
-    return registerValue === cmpValue;
 }
 
 function stopMovement() {
@@ -244,6 +215,14 @@ loader.load('/static/rover.glb', (gltf) => {
 
     function animate() {
         requestAnimationFrame(animate);
+
+        if (rover) {
+            const offset = new THREE.Vector3(0, 5, -10);
+            const relativeCameraOffset = offset.applyMatrix4(rover.matrixWorld);
+            camera.position.copy(relativeCameraOffset);
+            camera.lookAt(rover.position);
+        }
+
         renderer.render(scene, camera);
     }
 

@@ -1,14 +1,12 @@
 START:
-    SET R0, 3      ; Set th R0 to 3
-    FWD R0         ; Move forward
-    TURN R         ; Turn right
-    TURN L         ; Turn left
-    FWD R0         ; Move forward
-    ADD R0, 2      ; Increase R0 to by 2 units
-    REM R0, 1      ; Remove 1 from the register
-    FWD R0         ; Move forward
-    CMP R0, 5      ; Compare speed with 5
-    JEQ STOP_MOVE  ; If speed is 5, jump to STOP_MOVE
+    SET R0, 1               ; Set the R0 to 1
+    SET R1, 1               ; Set the R1 to 1
+    JMP LOOP                ; Jump to loop
+
+LOOP:
+    FWD R0                  ; Move forward by R0 value
+    ADD R1, 1               ; Add 1 to R1
+    JEQ STOP_MOVE, R1, 100  ; If R1 == 100, jump to STOP_MOVE else go through the loop again
 
 STOP_MOVE:
     STOP           ; Stop the rover
