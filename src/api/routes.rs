@@ -19,7 +19,7 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Rejection> {
 }
 
 fn get_post() -> impl Filter<Extract = impl Reply, Error = warp::Rejection> + Clone {
-    warp::path!("evaluate" / u64)
+    warp::path!("export" / u64)
         .and(warp::post())
         .and(
             warp::body::json()

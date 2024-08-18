@@ -13,11 +13,39 @@ function logToConsole(message) {
     roverConsole.scrollTop = roverConsole.scrollHeight;
 }
 
-function runCode() {
-    const code = codebox.value;
-    const lines = code.split('\n');
-    executeCode(lines);
+function LoadingBar(totalBytes) {
+    let loadedBytes = 0;
+    const intervalTime = 1;
+
+    return new Promise((resolve) => {
+        const loadingInterval = setInterval(() => {
+            if (loadedBytes >= totalBytes) {
+                clearInterval(loadingInterval);
+                logToConsole(`Uploaded [=========================] ${loadedBytes.toLocaleString()} bytes out of ${totalBytes.toLocaleString()} bytes (100.00%)`);
+                logToConsole("Running program!");
+                resolve();
+                return;
+            }
+            
+            loadedBytes += 1;
+            
+            const percentage = (loadedBytes / totalBytes) * 100;
+            const progressBar = `[${'='.repeat(Math.floor(percentage / 4))}${' '.repeat(25 - Math.floor(percentage / 4))}]`;
+            const message = `Uploading ${progressBar} ${loadedBytes.toLocaleString()} bytes out of ${totalBytes.toLocaleString()} bytes (${percentage.toFixed(2)}%)`;
+            
+            logToConsole(message);
+        }, intervalTime);
+    });
 }
+
+async function runCode() {
+    const code = codebox.value;
+    const totalBytes = new TextEncoder().encode(code).length;
+    roverConsole.innerHTML = '';
+    await LoadingBar(totalBytes);
+    executeCode(code.split('\n'));
+}
+
 
 function executeCode(lines) {
     const registers = { R0: 0, R1: 0, R2: 0, R3: 0, R4: 0, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0 };

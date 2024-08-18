@@ -1,13 +1,7 @@
-use warp::{Rejection, reject::Reject};
+use warp::Rejection;
 use serde::{Deserialize, Serialize};
 use std::result::Result;
 use crate::BColors;
-
-#[derive(Debug)]
-struct CustomError(&'static str);
-
-impl Reject for CustomError {}
-
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Post {
     pub id: u64,
