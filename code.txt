@@ -6,7 +6,7 @@ START:
 LOOP:
     FWD R0                  ; Move forward by R0 value
     ADD R1, 1               ; Add 1 to R1
-    JEQ STOP_MOVE, R1, 100  ; If R1 == 100, jump to STOP_MOVE else go through the loop again
+    JEQ STOP_MOVE, R1, 100  ; If R1 == 100 jump to STOP_MOVE else go through the loop again
 
 STOP_MOVE:
     STOP           ; Stop the rover

@@ -4,93 +4,24 @@ const divider = document.getElementById('divider');
 function runCode() {
     const code = codebox.value;
     const lines = code.split('\n');
-
-    const parsedCode = parseCode(lines);
-    executeCommands(parsedCode);
+    executeCode(lines);
 }
 
-function parseCode(lines) {
-    const commands = [];
+function executeCode(lines) {
     const registers = { R0: 0, R1: 0, R2: 0, R3: 0, R4: 0, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0 };
     const labels = {};
+    const commands = [];
 
+    // Parse labels and commands in one pass
     lines.forEach((line, index) => {
         const trimmedLine = line.trim();
         if (trimmedLine.endsWith(":")) {
             labels[trimmedLine.slice(0, -1)] = commands.length;
+        } else if (trimmedLine) {
+            commands.push(trimmedLine);
         }
     });
 
-    lines.forEach(line => {
-        const trimmedLine = line.trim();
-
-        if (trimmedLine.startsWith("SET")) {
-            const match = trimmedLine.match(/SET\s+(R\d+),\s*(\d+)/);
-            if (match) {
-                const reg = match[1];
-                const value = parseInt(match[2], 10);
-                commands.push(() => {
-                    registers[reg] = value;
-                    console.log(`SET ${reg} to ${value}`);
-                });
-            }
-        } else if (trimmedLine.startsWith("FWD")) {
-            const match = trimmedLine.match(/FWD\s+(R\d+)/);
-            if (match) {
-                const reg = match[1];
-                commands.push(() => {
-                    moveForward(registers[reg]);
-                    console.log(`FWD ${registers[reg]}`);
-                });
-            }
-        } else if (trimmedLine.startsWith("ADD")) {
-            const match = trimmedLine.match(/ADD\s+(R\d+),\s*(\d+)/);
-            if (match) {
-                const reg = match[1];
-                const value = parseInt(match[2], 10);
-                commands.push(() => {
-                    registers[reg] += value;
-                    console.log(`ADD ${value} to ${reg}, now ${registers[reg]}`);
-                });
-            }
-        } else if (trimmedLine.startsWith("JEQ")) {
-            const match = trimmedLine.match(/JEQ\s+(\w+),\s*(R\d+),\s*(\d+)/);
-            if (match) {
-                const label = match[1];
-                const reg = match[2];
-                const value = parseInt(match[3], 10);
-                commands.push(() => {
-                    if (registers[reg] === value) {
-                        index = labels[label] - 1; // Adjust index since it will increment after command execution
-                        console.log(`JEQ to ${label}`);
-                    }
-                });
-            }
-        } else if (trimmedLine === "STOP") {
-            commands.push(() => {
-                stopMovement();
-                endLoop = true;
-                console.log("STOP");
-            });
-        } else if (trimmedLine.startsWith("JMP")) {
-            const label = trimmedLine.split(' ')[1];
-            commands.push(() => {
-                index = labels[label] - 1; // Adjust index since it will increment after command execution
-                console.log(`JMP to ${label}`);
-            });
-        } else if (trimmedLine === "END") {
-            commands.push(() => {
-                endLoop = true;
-                console.log("END");
-            });
-        }
-    });
-
-    return { commands, labels, registers };
-}
-
-function executeCommands(parsedCode) {
-    const { commands } = parsedCode;
     let index = 0;
     let endLoop = false;
 
@@ -99,11 +30,70 @@ function executeCommands(parsedCode) {
             return;
         }
 
-        const currentCommand = commands[index];
-        currentCommand();
+        const command = commands[index];
+        const [instruction, ...args] = command.split(/[\s,]+/);
+        console.log(`Executing: ${instruction} ${args.join(' ')}`);
+
+        switch (instruction) {
+            case 'SET':
+                const reg = args[0];
+                const value = parseInt(args[1], 10);
+                registers[reg] = value;
+                console.log(`SET ${reg} to ${value}`);
+                index++; // Move to the next command
+                break;
+
+            case 'FWD':
+                moveForward(registers[args[0]]);
+                console.log(`FWD ${registers[args[0]]}`);
+                index++; // Move to the next command
+                break;
+
+            case 'ADD':
+                const regAdd = args[0];
+                const valueAdd = parseInt(args[1], 10);
+                registers[regAdd] += valueAdd;
+                console.log(`ADD ${valueAdd} to ${regAdd}, now ${registers[regAdd]}`);
+                index++; // Move to the next command
+                break;
+
+            case 'JEQ':
+                const label = args[0];
+                const regJEQ = args[1];
+                const valueJEQ = parseInt(args[2], 10);
+                if (registers[regJEQ] === valueJEQ) {
+                    console.log(`JEQ to ${label}`);
+                    index = labels[label];
+                } else {
+                    console.log(`Condition not met, continuing loop`);
+                    index = labels['LOOP']; // Jump back to the start of the loop
+                }
+                break;
+
+            case 'STOP':
+                stopMovement();
+                endLoop = true;
+                console.log("STOP");
+                return; // Exit execution
+
+            case 'JMP':
+                const jumpLabel = args[0];
+                console.log(`JMP to ${jumpLabel}`);
+                index = labels[jumpLabel];
+                break;
+
+            case 'END':
+                endLoop = true;
+                console.log("END");
+                return; // Exit execution
+
+            default:
+                console.log(`Unknown instruction: ${instruction}`);
+                index++; // Move to the next command
+                break;
+        }
 
         if (!endLoop) {
-            index++;
             setTimeout(executeNextCommand, 500);
         }
     }
