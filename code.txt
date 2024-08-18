@@ -6,11 +6,12 @@ START:
 LOOP:
     FWD R0                  ; Move forward by R0 value
     ADD R1, 1               ; Add 1 to R1
-    JEQ STOP_MOVE, R1, 10   ; If R1 == 10 jump to STOP_MOVE else loop
+    JEQ STOP_MOVE, R1, 10  ; If R1 == 10 jump to STOP_MOVE else loop
+    JMP LOOP                ; If JEQ not met, jump back to LOOP
 
 STOP_MOVE:
-    STOP           ; Stop the rover
-    JMP END        ; Jump to END
+    STOP                    ; Stop the rover
+    JMP END                 ; Jump to END
 
 END:
     ; End of program
