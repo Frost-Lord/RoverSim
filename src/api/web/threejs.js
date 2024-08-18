@@ -1,5 +1,21 @@
 const threejsContainer = document.getElementById('threejs-container');
+const roverConsole = document.getElementById('rover-console');
+const dividerHorizontal = document.getElementById('divider-horizontal');
 const divider = document.getElementById('divider');
+const codeboxContainer = document.getElementById('codebox-container');
+
+function logToConsole(message) {
+    const logEntry = document.createElement('div');
+    
+    logEntry.innerHTML = message
+        .replace(/(SET|TURN|FWD|ADD|REM|MUL|JEQ|STOP|JMP|END)/g, '<span style="color: cyan; font-weight: bold;">$1</span>')
+        .replace(/(\bR[0-9]+\b)/g, '<span style="color: orange; font-weight: bold;">$1</span>')
+        .replace(/([0-9]+)/g, '<span style="color: yellow; font-weight: bold;">$1</span>')
+        .replace(/(Invalid|Unknown)/g, '<span style="color: red; font-weight: bold;">$1</span>');
+    
+    roverConsole.appendChild(logEntry);
+    roverConsole.scrollTop = roverConsole.scrollHeight;
+}
 
 function runCode() {
     const code = codebox.value;
@@ -31,32 +47,33 @@ function executeCode(lines) {
 
         const command = commands[index];
         const [instruction, ...args] = command.split(/[\s,]+/);
-        console.log(`Executing: ${instruction} ${args.join(' ')}`);
+        //logToConsole(`Executing: ${instruction} ${args.join(' ')}`);
 
         switch (instruction) {
             case 'SET':
                 const reg = args[0];
                 const value = parseInt(args[1], 10);
                 registers[reg] = value;
-                console.log(`SET ${reg} to ${value}`);
+                logToConsole(`SET ${reg} to ${value}`);
                 index++;
                 break;
 
             case 'TURN':
                 const direction = args[0];
-                if (direction === 'R') {
-                    turnRight();
-                } else if (direction === 'L') {
-                    turnLeft();
+                if (isNaN(direction)) {
+                    logToConsole(`Invalid direction: ${direction}`);
+                } else if (direction < -360 || direction > 360) {
+                    logToConsole(`Invalid direction: ${direction}`);
                 } else {
-                    console.log(`Unknown direction: ${direction}`);
+                    turnRover(direction);
+                    logToConsole(`TURN ${direction}`);
                 }
                 index++;
                 break;
 
             case 'FWD':
                 moveForward(registers[args[0]]);
-                console.log(`FWD ${registers[args[0]]}`);
+                logToConsole(`FWD ${registers[args[0]]}`);
                 index++;
                 break;
 
@@ -64,7 +81,7 @@ function executeCode(lines) {
                 const regAdd = args[0];
                 const valueAdd = parseInt(args[1], 10);
                 registers[regAdd] += valueAdd;
-                console.log(`ADD ${valueAdd} to ${regAdd}, now ${registers[regAdd]}`);
+                logToConsole(`ADD ${valueAdd} to ${regAdd}, now ${registers[regAdd]}`);
                 index++;
                 break;
 
@@ -72,7 +89,15 @@ function executeCode(lines) {
                 const regRem = args[0];
                 const valueRem = parseInt(args[1], 10);
                 registers[regRem] -= valueRem;
-                console.log(`REM ${valueRem} from ${regRem}, now ${registers[regRem]}`);
+                logToConsole(`REM ${valueRem} from ${regRem}, now ${registers[regRem]}`);
+                index++;
+                break;
+
+            case 'MUL':
+                const regMul = args[0];
+                const valueMul = parseInt(args[1], 10);
+                registers[regMul] *= valueMul;
+                logToConsole(`MUL ${valueMul} to ${regMul}, now ${registers[regMul]}`);
                 index++;
                 break;
 
@@ -81,33 +106,33 @@ function executeCode(lines) {
                 const regJEQ = args[1];
                 const valueJEQ = parseInt(args[2], 10);
                 if (registers[regJEQ] === valueJEQ) {
-                    console.log(`JEQ to ${label}`);
+                    logToConsole(`JEQ to ${label} : ${registers[regJEQ]} === ${valueJEQ}`);
                     index = labels[label];
                 } else {
-                    console.log(`Condition not met, continuing loop`);
-                    index = labels['LOOP'];
+                    logToConsole(`JEQ not met: ${registers[regJEQ]} !== ${valueJEQ}`);
+                    index++;
                 }
                 break;
 
             case 'STOP':
                 stopMovement();
                 endLoop = true;
-                console.log("STOP");
+                logToConsole("STOP");
                 return;
 
             case 'JMP':
                 const jumpLabel = args[0];
-                console.log(`JMP to ${jumpLabel}`);
+                logToConsole(`JMP to ${jumpLabel}`);
                 index = labels[jumpLabel];
                 break;
 
             case 'END':
                 endLoop = true;
-                console.log("END");
+                logToConsole("END");
                 return;
 
             default:
-                console.log(`Unknown instruction: ${instruction}`);
+                logToConsole(`Unknown instruction: ${instruction}`);
                 index++;
                 break;
         }
@@ -122,38 +147,59 @@ function executeCode(lines) {
 
 let speed = 1;
 
-function setSpeed(value) {
-    speed = value;
-    console.log(`Speed set to ${speed}`);
-}
-
 function moveForward(steps) {
     if (rover && steps > 0) {
         const moveDistance = steps * speed;
-        rover.position.z -= moveDistance;
-        console.log(`Rover moved forward ${moveDistance}`);
+        const initialPosition = rover.position.clone();
+        const moveDuration = 1000;
+        const moveStartTime = performance.now();
+
+        const direction = new THREE.Vector3(0, 0, 1);
+        direction.applyQuaternion(rover.quaternion);
+
+        function animateMove(time) {
+            const elapsedTime = time - moveStartTime;
+            const progress = Math.min(elapsedTime / moveDuration, 1);
+
+            const delta = direction.clone().multiplyScalar(moveDistance * progress);
+            rover.position.copy(initialPosition.clone().add(delta));
+
+            if (progress < 1) {
+                requestAnimationFrame(animateMove);
+            }
+        }
+
+        requestAnimationFrame(animateMove);
     } else {
-        console.log("Rover cannot move. Speed or steps is 0.");
+        logToConsole("Rover cannot move. Speed or steps is 0.");
     }
 }
 
-function turnRight() {
+function turnRover(degrees) {
     if (rover) {
-        rover.rotation.y -= Math.PI / 2;
-        console.log("Rover turned right");
-    }
-}
+        const initialRotation = rover.rotation.y;
+        const targetRotation = initialRotation - THREE.Math.degToRad(degrees);
+        const turnDuration = 1000;
+        const turnStartTime = performance.now();
 
-function turnLeft() {
-    if (rover) {
-        rover.rotation.y += Math.PI / 2;
-        console.log("Rover turned left");
+        function animateTurn(time) {
+            const elapsedTime = time - turnStartTime;
+            const progress = Math.min(elapsedTime / turnDuration, 1);
+            rover.rotation.y = initialRotation + (targetRotation - initialRotation) * progress;
+
+            if (progress < 1) {
+                requestAnimationFrame(animateTurn);
+            }
+        }
+
+        requestAnimationFrame(animateTurn);
+    } else {
+        logToConsole("Rover cannot turn. Rover is not defined.");
     }
 }
 
 function stopMovement() {
     speed = 0;
-    console.log("Rover stopped");
 }
 
 const scene = new THREE.Scene();
@@ -173,7 +219,7 @@ const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(5, 10, 7.5).normalize();
 scene.add(directionalLight);
 
-const groundGeometry = new THREE.PlaneGeometry(500, 500);
+const groundGeometry = new THREE.PlaneGeometry(1000, 1000);
 const groundMaterials = [
     new THREE.MeshBasicMaterial({ color: 0xa64324 }),
     new THREE.MeshBasicMaterial({ color: 0x8b4513 }),
@@ -184,7 +230,7 @@ const ground = new THREE.Mesh(groundGeometry, groundMaterial);
 ground.rotation.x = -Math.PI / 2;
 scene.add(ground);
 
-const rockGeometry = new THREE.SphereGeometry(1, 5, 5);
+const rockGeometry = new THREE.SphereGeometry(1, 10, 10);
 const rockMaterials = [
     new THREE.MeshLambertMaterial({ color: 0x7f8b8a }),
     new THREE.MeshLambertMaterial({ color: 0x4e5d5b }),
@@ -211,9 +257,9 @@ const starCount = 10000;
 const starVertices = [];
 
 for (let i = 0; i < starCount; i++) {
-    const x = THREE.Math.randFloatSpread(500);
-    const y = THREE.Math.randFloatSpread(500);
-    const z = THREE.Math.randFloatSpread(500);
+    const x = THREE.Math.randFloatSpread(1000);
+    const y = THREE.Math.randFloatSpread(1000);
+    const z = THREE.Math.randFloatSpread(1000);
     starVertices.push(x, y, z);
 }
 
@@ -223,7 +269,6 @@ const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1 });
 const stars = new THREE.Points(starGeometry, starMaterial);
 scene.add(stars);
 
-const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
 const loader = new THREE.GLTFLoader();
 let rover;
 
@@ -262,7 +307,14 @@ controls.mouseButtons = {
     LEFT: THREE.MOUSE.PAN
 };
 
+let isResizingHorizontal = false;
 let isResizing = false;
+
+dividerHorizontal.addEventListener('mousedown', (e) => {
+    isResizingHorizontal = true;
+    document.addEventListener('mousemove', resizeHorizontalPanels);
+    document.addEventListener('mouseup', stopHorizontalResizing);
+});
 
 divider.addEventListener('mousedown', (e) => {
     isResizing = true;
@@ -270,18 +322,42 @@ divider.addEventListener('mousedown', (e) => {
     document.addEventListener('mouseup', stopResizing);
 });
 
+function resizeHorizontalPanels(e) {
+    if (!isResizingHorizontal) return;
+    const containerRect = document.getElementById('threejs-wrapper').getBoundingClientRect();
+    const newThreejsHeight = e.clientY - containerRect.top;
+    const newConsoleHeight = containerRect.height - newThreejsHeight - dividerHorizontal.clientHeight;
+
+    if (newThreejsHeight > 0 && newConsoleHeight > 0) {
+        threejsContainer.style.height = `${newThreejsHeight}px`;
+        roverConsole.style.height = `${newConsoleHeight}px`;
+
+        renderer.setSize(threejsContainer.clientWidth, threejsContainer.clientHeight);
+        camera.aspect = threejsContainer.clientWidth / threejsContainer.clientHeight;
+        camera.updateProjectionMatrix();
+    }
+}
+
+function stopHorizontalResizing() {
+    isResizingHorizontal = false;
+    document.removeEventListener('mousemove', resizeHorizontalPanels);
+    document.removeEventListener('mouseup', stopHorizontalResizing);
+}
+
 function resizePanels(e) {
     if (!isResizing) return;
-    const containerWidth = container.clientWidth;
+    const containerWidth = document.getElementById('container').clientWidth;
     const codeboxWidth = e.clientX / containerWidth * 100;
     const threejsWidth = 100 - codeboxWidth;
 
-    codeboxContainer.style.width = `${codeboxWidth}%`;
-    threejsContainer.style.width = `${threejsWidth}%`;
+    if (codeboxWidth > 0 && threejsWidth > 0) {
+        codeboxContainer.style.width = `${codeboxWidth}%`;
+        document.getElementById('threejs-wrapper').style.width = `${threejsWidth}%`;
 
-    renderer.setSize(threejsContainer.clientWidth, threejsContainer.clientHeight);
-    camera.aspect = threejsContainer.clientWidth / threejsContainer.clientHeight;
-    camera.updateProjectionMatrix();
+        renderer.setSize(threejsContainer.clientWidth, threejsContainer.clientHeight);
+        camera.aspect = threejsContainer.clientWidth / threejsContainer.clientHeight;
+        camera.updateProjectionMatrix();
+    }
 }
 
 function stopResizing() {

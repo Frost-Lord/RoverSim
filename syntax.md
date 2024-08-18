@@ -11,11 +11,8 @@
    - **Example**: `FWD R0` moves the rover forward by the value in `R0`.
 
 ### 3. **TURN Direction**
-   - **Description**: Turns the rover in the specified direction.
-   - **Directions**:
-     - `R`: Turn right
-     - `L`: Turn left
-   - **Example**: `TURN R` turns the rover to the right.
+   - **Description**: Turns the rover in the specified direction between -360 and 360, 0 as facing foward.
+   - **Example**: `TURN 90` turns the rover to the right 90 degrees.
 
 ### 4. **ADD Register, Value**
    - **Description**: Adds a value to the specified register.
@@ -58,8 +55,8 @@
 START:
     SET R0, 3      ; Set R0 to 3
     FWD R0         ; Move forward
-    TURN R         ; Turn right
-    TURN L         ; Turn left
+    TURN 90        ; Turn right
+    TURN -90       ; Turn left
     FWD R0         ; Move forward
     ADD R0, 2      ; Increase R0 by 2 units
     REM R0, 1      ; Remove 1 from the register

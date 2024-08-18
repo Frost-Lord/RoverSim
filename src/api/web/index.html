@@ -1,92 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rover Emulation</title>
     <script src="https://unpkg.com/three@0.112/build/three.min.js"></script>
     <script src="https://unpkg.com/three@0.112/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.112.0/examples/js/loaders/GLTFLoader.js"></script>
 
-    <link rel="stylesheet" type="text/css" href="/static/index.css">
-
-    <style>
-        #loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #151820;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        #loading-container {
-            position: relative;
-            width: 150px;
-            height: 150px;
-        }
-
-        #loading-screen img {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        .loading-circle {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background-color: #ffffff;
-            top: 50%;
-            left: 50%;
-            margin: 0px 0 0 -10px;
-            animation: orbit 2s linear infinite;
-        }
-
-        @keyframes orbit {
-            0% {
-                transform: rotate(0deg) translateX(150px) rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg) translateX(150px) rotate(-360deg);
-            }
-        }
-    </style>
-</head>
-<body>
+    <link rel="stylesheet" type="text/css" href="/static/index.css" />
+  </head>
+  <body>
     <div id="loading-screen">
-        <div id="loading-container">
-            <img src="/static/logo.png" alt="Loading...">
-            <div class="loading-circle"></div>
-        </div>
+      <div id="loading-container">
+        <img src="/static/logo.png" alt="Loading..." />
+        <div class="loading-circle"></div>
+      </div>
     </div>
 
     <div id="container" style="display: none;">
-        <div id="codebox-container">
-            <div id="line-numbers"></div>
-            <div id="codebox-wrapper">
-                <pre id="highlighted-code"></pre>
-                <textarea id="codebox" placeholder="Write your code here..."></textarea>
-            </div>
+      <div id="codebox-container">
+        <div id="line-numbers"></div>
+        <div id="codebox-wrapper">
+          <pre id="highlighted-code"></pre>
+          <textarea
+            id="codebox"
+            placeholder="Write your code here..."
+          ></textarea>
         </div>
-        <div id="divider"></div>
+      </div>
+      <div id="divider"></div>
+      <div id="threejs-wrapper">
         <div id="threejs-container"></div>
+        <div id="divider-horizontal"></div>
+        <div id="rover-console"></div>
+      </div>
     </div>
 
     <script>
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                document.getElementById('loading-screen').style.display = 'none';
-                document.getElementById('container').style.display = 'flex';
-            }, 100);
-        });
+      window.addEventListener("load", function () {
+        setTimeout(function () {
+          document.getElementById("loading-screen").style.display = "none";
+          document.getElementById("container").style.display = "flex";
+        }, 100);
+      });
     </script>
-    <script src="/static/index.js"></script>
     <script src="/static/threejs.js"></script>
-</body>
+    <script src="/static/index.js"></script>
+  </body>
 </html>
