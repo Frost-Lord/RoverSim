@@ -23,35 +23,44 @@ const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(5, 10, 7.5).normalize();
 scene.add(directionalLight);
 
+// Mars-like ground
 const groundGeometry = new THREE.PlaneGeometry(1000, 1000);
 const groundMaterials = [
-    new THREE.MeshBasicMaterial({ color: 0xa64324 }),
-    new THREE.MeshBasicMaterial({ color: 0x8b4513 }),
-    new THREE.MeshBasicMaterial({ color: 0x7a5230 }),
+    new THREE.MeshBasicMaterial({ color: 0xa64324 }), // Martian reddish-brown
+    new THREE.MeshBasicMaterial({ color: 0x8b4513 }), // Dark brown
+    new THREE.MeshBasicMaterial({ color: 0x7a5230 }), // Earthy brown
+    new THREE.MeshBasicMaterial({ color: 0x9e5930 }), // Reddish hue
+    new THREE.MeshBasicMaterial({ color: 0x925c3a }), // More red-brown
 ];
-const groundMaterial = groundMaterials[Math.floor(Math.random() * groundMaterials.length)];
+const groundMaterial = new THREE.MeshPhongMaterial({
+    color: 0x8b4513,
+    flatShading: true,
+});
 const ground = new THREE.Mesh(groundGeometry, groundMaterial);
 ground.rotation.x = -Math.PI / 2;
 scene.add(ground);
 
-const rockGeometry = new THREE.SphereGeometry(1, 10, 10);
+// Small rocks on the ground
+const rockGeometry = new THREE.DodecahedronGeometry(1, 0);
 const rockMaterials = [
-    new THREE.MeshLambertMaterial({ color: 0x7f8b8a }),
-    new THREE.MeshLambertMaterial({ color: 0x4e5d5b }),
-    new THREE.MeshLambertMaterial({ color: 0x3b4c4a }),
+    new THREE.MeshLambertMaterial({ color: 0x7f8b8a }), // Light grey
+    new THREE.MeshLambertMaterial({ color: 0x4e5d5b }), // Darker grey
+    new THREE.MeshLambertMaterial({ color: 0x3b4c4a }), // Dark grey
+    new THREE.MeshLambertMaterial({ color: 0xa0522d }), // Sandy brown
+    new THREE.MeshLambertMaterial({ color: 0x8b4513 }), // Darker brown
 ];
 
-for (let i = 0; i < 100; i++) {
+for (let i = 0; i < 200; i++) {
     const rock = new THREE.Mesh(rockGeometry, rockMaterials[Math.floor(Math.random() * rockMaterials.length)]);
     rock.position.set(
         Math.random() * 500 - 250,
-        Math.random() * 2,
+        0,
         Math.random() * 500 - 250
     );
     rock.scale.set(
-        Math.random() * 2 + 0.5,
-        Math.random() * 2 + 0.5,
-        Math.random() * 2 + 0.5
+        Math.random() * 0.5 + 0.1,
+        Math.random() * 0.5 + 0.1,
+        Math.random() * 0.5 + 0.1
     );
     scene.add(rock);
 }
