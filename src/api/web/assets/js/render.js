@@ -5,6 +5,7 @@ const codeboxContainer = document.getElementById('codebox-container');
 
 let speed = 1;
 let rover;
+let batteryLevel = 100;
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, threejsContainer.clientWidth / threejsContainer.clientHeight, 0.1, 1000);
@@ -22,6 +23,30 @@ scene.add(ambientLight);
 const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(5, 10, 7.5).normalize();
 scene.add(directionalLight);
+
+threejsContainer.style.position = 'relative';
+const batteryDisplay = document.createElement('div');
+batteryDisplay.id = 'battery-display';
+threejsContainer.appendChild(batteryDisplay);
+
+batteryDisplay.style.position = 'absolute';
+batteryDisplay.style.bottom = '10px';
+batteryDisplay.style.left = '10px';
+batteryDisplay.style.padding = '5px 10px';
+batteryDisplay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+batteryDisplay.style.color = '#ffffff';
+batteryDisplay.style.fontFamily = 'monospace';
+batteryDisplay.style.fontSize = '14px';
+batteryDisplay.style.zIndex = '1000';
+
+function updateBatteryDisplay(level) {
+    const totalBars = 20;
+    const filledBars = Math.round((level / 100) * totalBars);
+    const batteryBar = `[${'='.repeat(filledBars)}${' '.repeat(totalBars - filledBars)}] (${level.toFixed(2)}%)`;
+    batteryDisplay.textContent = `Battery: ${batteryBar}`;
+}
+
+updateBatteryDisplay(batteryLevel);
 
 // Load Mars-like textures
 const textureLoader = new THREE.TextureLoader();
