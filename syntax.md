@@ -61,13 +61,10 @@ START:
     ADD R0, 2      ; Increase R0 by 2 units
     REM R0, 1      ; Remove 1 from the register
     FWD R0         ; Move forward
-    JMP STOP_MOVE  ; Jump to STOP_MOVE
-
-STOP_MOVE:
-    STOP           ; Stop the rover
     JMP END        ; Jump to END
 
 END:
+    STOP           ; Stop the rover
     ; End of program
 ```
 
@@ -81,13 +78,9 @@ START:
 LOOP:
     FWD R0                  ; Move forward by R0 value
     ADD R1, 1               ; Add 1 to R1
-    JEQ STOP_MOVE, R1, 10  ; If R1 == 10 jump to STOP_MOVE else loop
+    JEQ END, R1, 10         ; If R1 == 10 jump to STOP_MOVE else loop
     JMP LOOP                ; If JEQ not met, jump back to LOOP
 
-STOP_MOVE:
-    STOP                    ; Stop the rover
-    JMP END                 ; Jump to END
-
 END:
-    ; End of program
+    STOP                    ; End of program
 ```

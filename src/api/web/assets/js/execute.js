@@ -4,7 +4,7 @@ function logToConsole(message) {
     const logEntry = document.createElement('div');
     
     logEntry.innerHTML = message
-        .replace(/(SET|TURN|FWD|ADD|REM|MUL|JEQ|STOP|JMP|END)/g, '<span style="color: cyan; font-weight: bold;">$1</span>')
+        .replace(/(SET|TURN|FWD|ADD|REM|MUL|JEQ|STOP|JMP|END|START)/g, '<span style="color: cyan; font-weight: bold;">$1</span>')
         .replace(/(\bR[0-9]+\b)/g, '<span style="color: orange; font-weight: bold;">$1</span>')
         .replace(/([0-9]+)/g, '<span style="color: yellow; font-weight: bold;">$1</span>')
         .replace(/(Invalid|Unknown)/g, '<span style="color: red; font-weight: bold;">$1</span>');
@@ -24,14 +24,28 @@ function executeCode(lines) {
     const labels = {};
     const commands = [];
 
+    let hasStart = false;
+    let hasStop = false;
+
     lines.forEach((line) => {
         const trimmedLine = line.trim();
+        if (trimmedLine === 'START:') {
+            hasStart = true;
+        }
+        if (trimmedLine.includes('STOP')) {
+            hasStop = true;
+        }
         if (trimmedLine.endsWith(":")) {
             labels[trimmedLine.slice(0, -1)] = commands.length;
         } else if (trimmedLine) {
             commands.push(trimmedLine);
         }
     });
+
+    if (!hasStart || !hasStop) {
+        logToConsole(`Error: Missing ${!hasStart ? 'START:' : 'STOP'} command`);
+        return;
+    }
 
     let index = 0;
     let endLoop = false;
@@ -45,6 +59,11 @@ function executeCode(lines) {
         const [instruction, ...args] = command.split(/[\s,]+/);
 
         switch (instruction) {
+            case 'START':
+                logToConsole("START");
+                index++;
+                break;
+
             case 'SET':
                 const reg = args[0];
                 const value = parseInt(args[1], 10);

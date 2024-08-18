@@ -1,6 +1,7 @@
 const codebox = document.getElementById('codebox');
 const lineNumbers = document.getElementById('line-numbers');
 const highlightedCode = document.getElementById('highlighted-code');
+let timeoutId;
 
 function updateLineNumbers() {
     const lines = codebox.value.split('\n').length;
@@ -25,11 +26,42 @@ function highlightCode() {
     highlightedCode.innerHTML = code;
 }
 
+function setDefaultCode() {
+    const defaultCode = 
+`START:
+    SET R0, 1               ; Set the R0 to 1
+    SET R1, 1               ; Set the R1 to 1
+    JMP LOOP                ; Jump to loop
+
+LOOP:
+    FWD R0                  ; Move forward by R0 value
+    ADD R1, 1               ; Add 1 to R1
+    JEQ END, R1, 10         ; If R1 == 10 jump to STOP_MOVE else loop
+    JMP LOOP                ; If JEQ not met, jump back to LOOP
+
+END:
+    STOP                    ; End of program`;
+
+    codebox.value = defaultCode;
+    updateLineNumbers();
+    highlightCode();
+}
+
+window.onload = setDefaultCode;
+
 codebox.addEventListener('input', () => {
     updateLineNumbers();
     highlightCode();
-    runCode();
+
+    if (timeoutId) {
+        clearTimeout(timeoutId);
+    }
+
+    timeoutId = setTimeout(() => {
+        runCode();
+    }, 2000);
 });
+
 
 codebox.addEventListener('scroll', () => {
     lineNumbers.scrollTop = codebox.scrollTop;

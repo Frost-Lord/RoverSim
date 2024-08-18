@@ -23,22 +23,36 @@ const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(5, 10, 7.5).normalize();
 scene.add(directionalLight);
 
-// Mars-like ground
-const groundGeometry = new THREE.PlaneGeometry(1000, 1000);
-const groundMaterials = [
-    new THREE.MeshBasicMaterial({ color: 0xa64324 }), // Martian reddish-brown
-    new THREE.MeshBasicMaterial({ color: 0x8b4513 }), // Dark brown
-    new THREE.MeshBasicMaterial({ color: 0x7a5230 }), // Earthy brown
-    new THREE.MeshBasicMaterial({ color: 0x9e5930 }), // Reddish hue
-    new THREE.MeshBasicMaterial({ color: 0x925c3a }), // More red-brown
-];
-const groundMaterial = new THREE.MeshPhongMaterial({
-    color: 0x8b4513,
-    flatShading: true,
+// Load Mars-like textures
+const textureLoader = new THREE.TextureLoader();
+const albedo = textureLoader.load('/static/assets/texture/rocky-dunes1_albedo.png');
+const ao = textureLoader.load('/static/assets/texture/rocky-dunes1_ao.png');
+const height = textureLoader.load('/static/assets/texture/rocky-dunes1_height.png');
+const metallic = textureLoader.load('/static/assets/texture/rocky-dunes1_metallic.png');
+const normal = textureLoader.load('/static/assets/texture/rocky-dunes1_normal-ogl.png');
+const roughness = textureLoader.load('/static/assets/texture/rocky-dunes1_roughness.png');
+
+const repeatCount = 30;
+[albedo, ao, height, metallic, normal, roughness].forEach(texture => {
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(repeatCount, repeatCount);
 });
+
+const groundMaterial = new THREE.MeshStandardMaterial({
+    map: albedo,
+    aoMap: ao,
+    displacementMap: height,
+    metalnessMap: metallic,
+    normalMap: normal,
+    roughnessMap: roughness,
+    displacementScale: 0.1,
+});
+
+const groundGeometry = new THREE.PlaneGeometry(1000, 1000, 256, 256);
 const ground = new THREE.Mesh(groundGeometry, groundMaterial);
 ground.rotation.x = -Math.PI / 2;
 scene.add(ground);
+
 
 // Small rocks on the ground
 const rockGeometry = new THREE.DodecahedronGeometry(1, 0);
