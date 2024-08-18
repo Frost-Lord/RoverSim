@@ -22,13 +22,13 @@
    - **Description**: Removes (subtracts) a value from the specified register.
    - **Example**: `REM R0, 1` decreases the value in `R0` by `1`.
 
-### 6. **JEQ Label**
+### 6. **EQU Label**
    - **Description**: Jumps to the specified label if the comparison (`CMP`) was equal.
-   - **Example**: `JEQ STOP_MOVE` jumps to `STOP_MOVE` if the previous comparison was equal.
+   - **Example**: `EQU STOP_MOVE` jumps to `STOP_MOVE` if the previous comparison was equal.
 
-### 7. **JEQ Label, Register, Value/Register**
+### 7. **EQU Label, Register, Value/Register**
    - **Description**: Jumps to the specified label if the value in the register is equal to the given value.
-   - **Example**: `JEQ STOP_MOVE, R1, 100` jumps to `STOP_MOVE` if the value in `R1` is `100`.
+   - **Example**: `EQU STOP_MOVE, R1, 100` jumps to `STOP_MOVE` if the value in `R1` is `100`.
 
 ### 8. **STOP**
    - **Description**: Stops the rover's movement.
@@ -71,16 +71,23 @@ END:
 ### Program 2: Loop Until Condition is Met
 ```plaintext
 START:
-    SET R0, 1               ; Set the R0 to 1
-    SET R1, 1               ; Set the R1 to 1
-    JMP LOOP                ; Jump to loop
+    SET R0, 1               ; Set R0 to 1
+    SET R1, 1               ; Set R1 to 1
+    JMP LOOP                ; Jump to LOOP
 
 LOOP:
     FWD R0                  ; Move forward by R0 value
     ADD R1, 1               ; Add 1 to R1
-    JEQ END, R1, 10         ; If R1 == 10 jump to STOP_MOVE else loop
-    JMP LOOP                ; If JEQ not met, jump back to LOOP
+    BATT R2                 ; Check battery level and store in R2
+    LTE CHARGE, R2, 60      ; If R2 <= 60, jump to CHARGE else continue
+    GTE END, R1, 10         ; When R1 >= 10, END the program
+    JMP LOOP                ; If conditions are not met, jump back to LOOP
+
+CHARGE:
+    BATT R2                 ; Check battery level and store in R2
+    GTE LOOP, R2, 100       ; If R2 >= 100, jump back to LOOP
+    JMP CHARGE              ; Continue charging until battery is full
 
 END:
-    STOP                    ; End of program
+    STOP                    ; End the program
 ```
