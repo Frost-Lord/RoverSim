@@ -103,7 +103,6 @@ function turnRover(degrees) {
 
 function stopMovement() {
     speed = 0;
-    console.log("Movement stopped. Rover is idle.");
 }
 
 function startBatteryRecharge() {
