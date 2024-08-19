@@ -1,9 +1,13 @@
+let topDownCamera;
+
 function setupScene(scene) {
     const ambientLight = new THREE.AmbientLight(0x404040, 2);
+    ambientLight.layers.enable(1);
     scene.add(ambientLight);
 
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
     directionalLight.position.set(5, 10, 7.5).normalize();
+    directionalLight.layers.enable(1);
     scene.add(directionalLight);
 
     const textureLoader = new THREE.TextureLoader();
@@ -33,9 +37,16 @@ function setupScene(scene) {
     const groundGeometry = new THREE.PlaneGeometry(1000, 1000, 256, 256);
     const ground = new THREE.Mesh(groundGeometry, groundMaterial);
     ground.rotation.x = -Math.PI / 2;
+    ground.layers.set(1);
     scene.add(ground);
 
     setupStars(scene);
+
+    const mapSize = 50;
+    topDownCamera = new THREE.OrthographicCamera(-mapSize, mapSize, mapSize, -mapSize, 1, 1000);
+    topDownCamera.position.set(0, 300, 0);
+    topDownCamera.lookAt(0, 0, 0);
+    topDownCamera.layers.set(1);
 }
 
 function setupStars(scene) {
@@ -53,6 +64,7 @@ function setupStars(scene) {
     starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
     const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1 });
     const stars = new THREE.Points(starGeometry, starMaterial);
+    stars.layers.set(0);
     scene.add(stars);
 }
 

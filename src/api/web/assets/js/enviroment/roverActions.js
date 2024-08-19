@@ -11,7 +11,7 @@ threejsContainer.appendChild(batteryDisplay);
 batteryDisplay.style.position = 'absolute';
 batteryDisplay.style.bottom = '10px';
 batteryDisplay.style.left = '10px';
-batteryDisplay.style.padding = '5px 10px';
+batteryDisplay.style.padding = '10px 10px 10px 10px';
 batteryDisplay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
 batteryDisplay.style.color = '#ffffff';
 batteryDisplay.style.fontFamily = 'monospace';

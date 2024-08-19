@@ -136,8 +136,9 @@ function executeCode(lines) {
         break;
 
       case "FWD":
-        moveForward(registers[args[0]]);
-        logToConsole(`FWD ${registers[args[0]]}`);
+        const regFwd = registers[args[0]] == undefined ? args[0] : registers[args[0]];
+        moveForward(regFwd);
+        logToConsole(`FWD ${regFwd}`);
         index++;
         break;
 
@@ -189,6 +190,13 @@ function executeCode(lines) {
         const jumpLabel = args[0];
         logToConsole(`JMP to ${jumpLabel}`);
         index = labels[jumpLabel];
+        break;
+
+      case "TURN":
+        const regTurn = registers[args[0]] == undefined ? args[0] : registers[args[0]];
+        turnRover(regTurn);
+        logToConsole(`TURN ${regTurn}`);
+        index++;
         break;
 
       case "END":
