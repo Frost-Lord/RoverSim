@@ -41,13 +41,14 @@ function setDefaultCode() {
 LOOP:
     FWD R0                  ; Move forward by R0 value
     ADD R1, 1               ; Add 1 to R1
-    BATT R2                 ; Check battery level and store in R2
+    BATT R2                 ; Store the battery level in R2
     LTE CHARGE, R2, 60      ; If R2 <= 60, jump to CHARGE else continue
-    JMP LOOP                ; If LTE not met, jump back to LOOP
+    EQU END, R1, 10         ; If R2 == 10, jump to END else continue
+    JMP LOOP                ; Jump to LOOP
 
 CHARGE:
     BATT R2                 ; Check battery level and store in R2
-    GTE LOOP, R2, 100       ; If R2 >= 100, jump back to LOOP
+    GTE LOOP, R2, 10        ; If R2 >= 100, jump back to LOOP
     JMP CHARGE              ; Continue charging until battery is full
 
 END:

@@ -157,6 +157,14 @@ function executeCode(lines) {
         index++;
         break;
 
+      case "REM":
+        const regRem = args[0];
+        const valueRem = parseInt(args[1], 10);
+        registers[regRem] -= valueRem;
+        logToConsole(`REM ${valueRem} from ${regRem}, now ${registers[regRem]}`);
+        index++;
+        break;
+
       case "LTE":
         const labelLTE = args[0];
         const regLTE = args[1];
@@ -183,6 +191,21 @@ function executeCode(lines) {
           index = labels[labelGTE];
         } else {
           logToConsole(`GTE not met: ${registers[regGTE]} < ${valueGTE}`);
+          index++;
+        }
+        break;
+
+      case "EQU":
+        const labelEQU = args[0];
+        const regEQU = args[1];
+        const valueEQU = parseInt(args[2], 10);
+        if (registers[regEQU] == valueEQU) {
+          logToConsole(
+            `EQU to ${labelEQU} : ${registers[regEQU]} == ${valueEQU}`
+          );
+          index = labels[labelEQU];
+        } else {
+          logToConsole(`EQU not met: ${registers[regEQU]} != ${valueEQU}`);
           index++;
         }
         break;
