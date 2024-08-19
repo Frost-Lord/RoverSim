@@ -34,7 +34,7 @@ function LoadingBar(totalBytes) {
       if (loadedBytes >= totalBytes) {
         clearInterval(loadingInterval);
         logToConsole(
-          `Uploaded [=========================] ${loadedBytes.toLocaleString()} bytes out of ${totalBytes.toLocaleString()} bytes (100.00%)`
+          `Uploaded [=========================] ${loadedBytes.toLocaleString()} bytes/ ${totalBytes.toLocaleString()} bytes (100.00%)`
         );
         logToConsole("Running program!");
         resolve();
@@ -47,7 +47,7 @@ function LoadingBar(totalBytes) {
       const progressBar = `[${"=".repeat(
         Math.floor(percentage / 4)
       )}${" ".repeat(25 - Math.floor(percentage / 4))}]`;
-      const message = `Uploading ${progressBar} ${loadedBytes.toLocaleString()} bytes out of ${totalBytes.toLocaleString()} bytes (${percentage.toFixed(
+      const message = `Uploading ${progressBar} ${loadedBytes.toLocaleString()} bytes/ ${totalBytes.toLocaleString()} bytes (${percentage.toFixed(
         2
       )}%)`;
 

@@ -15,7 +15,7 @@ body {
 
 #codebox-container {
     display: flex;
-    width: 50%;
+    width: 40%;
     background-color: #151820;
     color: #ffffff;
     font-family: monospace;
@@ -46,7 +46,7 @@ body {
     position: relative;
     flex-grow: 1;
     padding-left: 40px;
-    overflow: hidden;
+    overflow: auto;
     z-index: 0;
 }
 
@@ -66,6 +66,7 @@ body {
     resize: none;
     outline: none;
     overflow: auto;
+    white-space: pre-wrap;
 }
 
 #codebox {
@@ -111,6 +112,22 @@ body {
 
 .comment {
     color: #5c6370;
+}
+
+.number {
+    color: #d19a66;
+}
+
+.note {
+    color: #98c379;
+}
+
+.fixme {
+    color: #e5c07b;
+}
+
+.important {
+    color: #e06c75;
 }
 
 #loading-screen {
@@ -167,8 +184,16 @@ body {
     z-index: 10;
 }
 
+#console-area {
+    display: flex;
+    flex-direction: row;
+    height: 40%;
+    background-color: #151820;
+    overflow: hidden;
+}
+
 #rover-console {
-    flex-grow: 0;
+    flex-basis: 50%;
     background-color: #151820;
     color: #ffffff;
     padding: 10px;
@@ -177,9 +202,50 @@ body {
     font-size: 14px;
     line-height: 1.5;
     white-space: pre-wrap;
-    height: 40%;
-    z-index: 1;
+    height: 100%;
+    box-sizing: border-box;
 }
+
+#additional-options {
+    flex-basis: 50%;
+    background-color: #1d212b;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+#additional-options .button-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+#additional-options button {
+    padding: 5px 10px;
+    font-size: 14px;
+    cursor: pointer;
+    background-color: #2d313c;
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    flex: 1;
+    margin-right: 10px;
+}
+
+#additional-options button:last-child {
+    margin-right: 0;
+}
+
+#additional-options .content-section {
+    flex-grow: 1;
+    background-color: #2d313c;
+    padding: 10px;
+    overflow-y: auto;
+    color: #ffffff;
+}
+
 
 #rover-console::-webkit-scrollbar {
     width: 8px;
@@ -193,7 +259,7 @@ body {
 #threejs-wrapper {
     display: flex;
     flex-direction: column;
-    width: 50%;
+    width: 60%;
     height: 100%;
     overflow: hidden;
 }

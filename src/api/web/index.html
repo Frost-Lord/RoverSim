@@ -4,12 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rover Emulation</title>
-    <link rel="icon" type="image/x-icon" href="/static/assets/logo.png">
+    <link rel="icon" type="image/x-icon" href="/static/assets/logo.png" />
     <script src="https://unpkg.com/three@0.112/build/three.min.js"></script>
     <script src="https://unpkg.com/three@0.112/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.112.0/examples/js/loaders/GLTFLoader.js"></script>
 
-    <link rel="stylesheet" type="text/css" href="/static/assets/css/index.css" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="/static/assets/css/index.css"
+    />
   </head>
   <body>
     <div id="loading-screen">
@@ -23,27 +27,48 @@
       <div id="codebox-container">
         <div id="line-numbers"></div>
         <div id="codebox-wrapper">
-          <pre id="highlighted-code"></pre>
           <textarea
             id="codebox"
             placeholder="Write your code here..."
           ></textarea>
+          <pre id="highlighted-code"></pre>
         </div>
       </div>
       <div id="divider"></div>
       <div id="threejs-wrapper">
         <div id="threejs-container"></div>
         <div id="divider-horizontal"></div>
-        <div id="rover-console"></div>
+        <div id="console-area">
+          <div id="rover-console"></div>
+          <div id="additional-options">
+            <div class="button-container">
+              <button onclick="showTracker()">Achievement/Goal Tracker</button>
+              <button onclick="showMap()">Map/Navigation Display</button>
+            </div>
+            <div id="tracker" class="content-section">Tracker Content Here</div>
+            <div id="map" class="content-section" style="display: none;"></div>
+          </div>
+        </div>
       </div>
     </div>
 
     <script>
+      function showTracker() {
+        document.getElementById("tracker").style.display = "block";
+        document.getElementById("map").style.display = "none";
+      }
+
+      function showMap() {
+        document.getElementById("tracker").style.display = "none";
+        document.getElementById("map").style.display = "block";
+      }
+
       window.addEventListener("load", function () {
         setTimeout(function () {
           document.getElementById("loading-screen").style.display = "none";
           document.getElementById("container").style.display = "flex";
-          window.dispatchEvent(new Event('resize'));
+          window.dispatchEvent(new Event("resize"));
+          showMap();
         }, 3000);
       });
     </script>

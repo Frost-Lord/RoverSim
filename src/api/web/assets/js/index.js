@@ -18,9 +18,14 @@ function highlightCode() {
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
-        .replace(/(FWD|TURN|ADD|MUL|EQU|LTE|GTE|JMP|SET|REM|BATT)/g, '<span class="command">$1</span>')
+        .replace(/\b\d+\b/g, '<span class="number">$&</span>')
+        .replace(/(FWD|TURN|ADD|MUL|EQU|LTE|GTE|JMP|SET|REM|BATT)/g, '<span class="command" title="$1 command">$1</span>')
         .replace(/(START|END|STOP|LOOP|STOP_MOVE)/g, '<span class="keyword">$1</span>')
+        .replace(/(\b[A-Z_]+)(:)/g, '<span class="keyword">$1</span>$2')
         .replace(/(R\d+)/g, '<span class="register">$1</span>')
+        .replace(/(;.*NOTE.*)/g, '<span class="note">$1</span>')
+        .replace(/(;.*FIXME.*)/g, '<span class="fixme">$1</span>')
+        .replace(/(;.*IMPORTANT.*)/g, '<span class="important">$1</span>')
         .replace(/(;.*)/g, '<span class="comment">$1</span>');
 
     highlightedCode.innerHTML = code;
