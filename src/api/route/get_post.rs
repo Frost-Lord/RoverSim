@@ -1,8 +1,8 @@
-use warp::Rejection;
+use crate::BColors;
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 use std::result::Result;
-use crate::BColors;
+use warp::Rejection;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Post {
@@ -16,7 +16,10 @@ pub struct BodyData {
 
 pub async fn get_post(id: u64, body: BodyData) -> Result<impl warp::Reply, Rejection> {
     let colors = BColors::new();
-    println!("{}[Rust] Received code: {}{:?}{}", colors.blue, colors.fail, body.code, colors.endc);
+    println!(
+        "{}[Rust] Received code: {}{:?}{}",
+        colors.blue, colors.fail, body.code, colors.endc
+    );
 
     let code = body.code;
     let rust_code = convert_code_to_rust(&code);
@@ -29,7 +32,10 @@ pub async fn get_post(id: u64, body: BodyData) -> Result<impl warp::Reply, Rejec
         .expect("Failed to execute cargo rustc command");
 
     if !output.status.success() {
-        println!("{}Error: Failed to compile with cargo rustc{}", colors.fail, colors.endc);
+        println!(
+            "{}Error: Failed to compile with cargo rustc{}",
+            colors.fail, colors.endc
+        );
     } else {
         println!("{}Evaluation successful{}", colors.cyan_green, colors.endc);
     }
@@ -43,27 +49,41 @@ fn convert_code_to_rust(code: &str) -> String {
     let mut labels = std::collections::HashMap::new();
     let mut current_label = String::new();
 
-    // First pass: Collect all labels
+    rust_code.push_str("#![allow(warnings)]\nuse std::process;\n");
+
+    for i in 0..10 {
+        rust_code.push_str(&format!("static mut r{}: i32 = 0;\n", i));
+    }
+
+    rust_code.push_str("\nfn main() {\n");
+
+    rust_code.push_str("    goto_start();\n}\n\n");
+
     for line in code.lines() {
         let line = line.trim();
         if let Some((label, _)) = line.split_once(':') {
-            labels.insert(label.trim().to_string(), format!("goto_{}", label.trim().to_lowercase()));
+            labels.insert(
+                label.trim().to_string(),
+                format!("goto_{}", label.trim().to_lowercase()),
+            );
         }
     }
 
-    // Second pass: Convert instructions to Rust code
     for line in code.lines() {
         let line = line.trim();
         if line.is_empty() || line.starts_with(';') {
             continue;
         }
 
-        if let Some((label, _)) = line.split_once(':') {
+        if let Some((label, instruction)) = line.split_once(':') {
             if !current_label.is_empty() {
-                rust_code.push_str("}\n\n");
+                rust_code.push_str("    }\n}\n\n");
             }
             current_label = labels.get(label.trim()).unwrap().clone();
-            rust_code.push_str(&format!("fn {}() {{\n", current_label));
+            rust_code.push_str(&format!("fn {}() {{\n   unsafe {{\n", current_label));
+            if !instruction.trim().is_empty() {
+                parse_instruction(instruction, &mut rust_code, &labels);
+            }
             continue;
         }
 
@@ -71,18 +91,27 @@ fn convert_code_to_rust(code: &str) -> String {
     }
 
     if !current_label.is_empty() {
-        rust_code.push_str("}\n\n");
+        rust_code.push_str("    }\n}\n\n");
     }
 
-    rust_code.insert_str(0, "fn main() {\n    goto_start();\n}\n\n");
     rust_code
 }
 
-fn parse_instruction(instruction: &str, rust_code: &mut String, labels: &std::collections::HashMap<String, String>) {
-    let parts: Vec<&str> = instruction.split_whitespace().collect();
+fn parse_instruction(
+    instruction: &str,
+    rust_code: &mut String,
+    labels: &std::collections::HashMap<String, String>,
+) {
+    let instruction = instruction.split(';').next().unwrap().trim();
+
+    let parts: Vec<&str> = instruction
+        .split_whitespace()
+        .map(|part| part.trim_end_matches(','))
+        .collect();
+
     match parts.as_slice() {
         ["SET", reg, val] => {
-            rust_code.push_str(&format!("    let mut {} = {};\n", reg.to_lowercase(), val));
+            rust_code.push_str(&format!("    {} = {};\n", reg.to_lowercase(), val));
         }
         ["FWD", reg] => {
             rust_code.push_str(&format!("    move_forward({});\n", reg.to_lowercase()));
@@ -91,25 +120,40 @@ fn parse_instruction(instruction: &str, rust_code: &mut String, labels: &std::co
             rust_code.push_str(&format!("    {} += {};\n", reg.to_lowercase(), val));
         }
         ["BATT", reg] => {
-            rust_code.push_str(&format!("    let {} = check_battery_level();\n", reg.to_lowercase()));
+            rust_code.push_str(&format!("    {} = 100;\n", reg.to_lowercase()));
         }
         ["LTE", label, reg, val] => {
             if let Some(target) = labels.get(*label) {
-                rust_code.push_str(&format!("    if {} <= {} {{ {}(); }}\n", reg.to_lowercase(), val, target));
+                rust_code.push_str(&format!(
+                    "    if {} <= {} {{ {}(); }}\n",
+                    reg.to_lowercase(),
+                    val,
+                    target
+                ));
             } else {
                 rust_code.push_str(&format!("    // Unknown label: {}\n", label));
             }
         }
         ["GTE", label, reg, val] => {
             if let Some(target) = labels.get(*label) {
-                rust_code.push_str(&format!("    if {} >= {} {{ {}(); }}\n", reg.to_lowercase(), val, target));
+                rust_code.push_str(&format!(
+                    "    if {} >= {} {{ {}(); }}\n",
+                    reg.to_lowercase(),
+                    val,
+                    target
+                ));
             } else {
                 rust_code.push_str(&format!("    // Unknown label: {}\n", label));
             }
         }
         ["EQU", label, reg, val] => {
             if let Some(target) = labels.get(*label) {
-                rust_code.push_str(&format!("    if {} == {} {{ {}(); }}\n", reg.to_lowercase(), val, target));
+                rust_code.push_str(&format!(
+                    "    if {} == {} {{ {}(); }}\n",
+                    reg.to_lowercase(),
+                    val,
+                    target
+                ));
             } else {
                 rust_code.push_str(&format!("    // Unknown label: {}\n", label));
             }
@@ -122,7 +166,7 @@ fn parse_instruction(instruction: &str, rust_code: &mut String, labels: &std::co
             }
         }
         ["STOP"] => {
-            rust_code.push_str("    stop();\n");
+            rust_code.push_str("    process::exit(0x0100);\n");
         }
         _ => {
             rust_code.push_str(&format!("    // Unknown instruction: {}\n", instruction));
