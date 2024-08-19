@@ -1,4 +1,6 @@
 const roverConsole = document.getElementById("rover-console");
+let runningInterval = null;
+let endLoop = false;
 
 function logToConsole(message) {
   const logEntry = document.createElement("div");
@@ -30,9 +32,10 @@ function LoadingBar(totalBytes) {
   const intervalTime = 1;
 
   return new Promise((resolve) => {
-    const loadingInterval = setInterval(() => {
+    if (runningInterval) clearInterval(runningInterval);
+    runningInterval = setInterval(() => {
       if (loadedBytes >= totalBytes) {
-        clearInterval(loadingInterval);
+        clearInterval(runningInterval);
         logToConsole(
           `Uploaded [=========================] ${loadedBytes.toLocaleString()} bytes/ ${totalBytes.toLocaleString()} bytes (100.00%)`
         );
@@ -57,10 +60,15 @@ function LoadingBar(totalBytes) {
 }
 
 async function runCode() {
+  if (runningInterval) clearInterval(runningInterval);
+  endLoop = true;
+
   const code = codebox.value;
   const totalBytes = new TextEncoder().encode(code).length;
   roverConsole.innerHTML = "";
   await LoadingBar(totalBytes);
+
+  endLoop = false;
   executeCode(code.split("\n"));
 }
 
@@ -104,7 +112,6 @@ function executeCode(lines) {
   }
 
   let index = 0;
-  let endLoop = false;
 
   function executeNextCommand() {
     if (index >= commands.length || endLoop) {
@@ -211,7 +218,7 @@ function executeCode(lines) {
     }
 
     if (!endLoop) {
-      setTimeout(executeNextCommand, 500);
+      runningInterval = setTimeout(executeNextCommand, 500);
     }
   }
 
