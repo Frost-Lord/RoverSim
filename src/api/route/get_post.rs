@@ -37,10 +37,11 @@ pub async fn get_post(id: u64, body: BodyData) -> Result<impl warp::Reply, Rejec
     let post = Post { id };
     Ok(warp::reply::json(&post))
 }
+
 fn convert_code_to_rust(code: &str) -> String {
     let mut rust_code = String::new();
     let mut labels = std::collections::HashMap::new();
-    let mut label_functions = String::new();
+    let mut current_label = String::new();
 
     // First pass: Collect all labels
     for line in code.lines() {
@@ -57,24 +58,23 @@ fn convert_code_to_rust(code: &str) -> String {
             continue;
         }
 
-        if let Some((label, instruction)) = line.split_once(':') {
-            let function_name = labels.get(label.trim()).unwrap();
-            rust_code.push_str(&format!("    {}();\n", function_name));
-            label_functions.push_str(&format!("fn {}() {{\n", function_name));
-            if !instruction.trim().is_empty() {
-                parse_instruction(instruction, &mut label_functions, &labels);
+        if let Some((label, _)) = line.split_once(':') {
+            if !current_label.is_empty() {
+                rust_code.push_str("}\n\n");
             }
-            label_functions.push_str("}\n\n");
+            current_label = labels.get(label.trim()).unwrap().clone();
+            rust_code.push_str(&format!("fn {}() {{\n", current_label));
             continue;
         }
 
-        parse_instruction(line, &mut label_functions, &labels);
+        parse_instruction(line, &mut rust_code, &labels);
     }
 
-    rust_code.insert_str(0, "fn main() {\n");
-    rust_code.push_str("}\n\n");
-    rust_code.push_str(&label_functions);
+    if !current_label.is_empty() {
+        rust_code.push_str("}\n\n");
+    }
 
+    rust_code.insert_str(0, "fn main() {\n    goto_start();\n}\n\n");
     rust_code
 }
 
