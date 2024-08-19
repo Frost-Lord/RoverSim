@@ -16,6 +16,7 @@
     />
   </head>
   <body>
+    <div id="notification-container"></div>
     <div id="loading-screen">
       <div id="loading-container">
         <img src="/static/assets/logo.png" alt="Loading..." />
@@ -43,12 +44,20 @@
           <div id="additional-options">
             <div class="button-container">
               <button onclick="showTracker()">Achievement/Goal Tracker</button>
-              <button onclick="showMap()">Map/Navigation Display</button>
+              <button onclick="showControls()">System/Controls</button>
             </div>
-            <div id="tracker" class="content-section">Tracker Content Here</div>
+            <div id="tracker" class="content-section">
+              <div class="goal-list-wrapper">
+                <ul class="goal-list goal-list-todo"></ul>
+                <ul class="goal-list goal-list-completed"></ul>
+              </div>
+            </div>
+            <div id="controls" class="content-section" style="display: none;">
+              System/Controls
+            </div>
             <div id="map" class="content-section" style="display: none;">
               <canvas id="mini-map"></canvas>
-            </div>            
+            </div>
           </div>
         </div>
       </div>
@@ -57,12 +66,12 @@
     <script>
       function showTracker() {
         document.getElementById("tracker").style.display = "block";
-        document.getElementById("map").style.display = "none";
+        document.getElementById("controls").style.display = "none";
       }
 
-      function showMap() {
+      function showControls() {
         document.getElementById("tracker").style.display = "none";
-        document.getElementById("map").style.display = "block";
+        document.getElementById("controls").style.display = "block";
       }
 
       window.addEventListener("load", function () {
@@ -70,10 +79,11 @@
           document.getElementById("loading-screen").style.display = "none";
           document.getElementById("container").style.display = "flex";
           window.dispatchEvent(new Event("resize"));
-          showMap();
+          showTracker();
         }, 3000);
       });
     </script>
+    <script src="/static/assets/js/cookies.js"></script>
     <script src="/static/assets/js/index.js"></script>
     <script src="/static/assets/js/enviroment/sceneSetup.js"></script>
     <script src="/static/assets/js/enviroment/controls.js"></script>

@@ -37,7 +37,7 @@ function LoadingBar(totalBytes) {
       if (loadedBytes >= totalBytes) {
         clearInterval(runningInterval);
         logToConsole(
-          `Uploaded [=========================] ${loadedBytes.toLocaleString()} bytes/ ${totalBytes.toLocaleString()} bytes (100.00%)`
+          `Uploaded [=========================] ${loadedBytes.toLocaleString()} bytes / ${totalBytes.toLocaleString()} bytes (100.00%)`
         );
         logToConsole("Running program!");
         resolve();
@@ -50,7 +50,7 @@ function LoadingBar(totalBytes) {
       const progressBar = `[${"=".repeat(
         Math.floor(percentage / 4)
       )}${" ".repeat(25 - Math.floor(percentage / 4))}]`;
-      const message = `Uploading ${progressBar} ${loadedBytes.toLocaleString()} bytes/ ${totalBytes.toLocaleString()} bytes (${percentage.toFixed(
+      const message = `Uploading ${progressBar} ${loadedBytes.toLocaleString()} bytes / ${totalBytes.toLocaleString()} bytes (${percentage.toFixed(
         2
       )}%)`;
 
@@ -60,6 +60,7 @@ function LoadingBar(totalBytes) {
 }
 
 async function runCode() {
+  updateTaskProgress("task4", 1);
   if (runningInterval) clearInterval(runningInterval);
   endLoop = true;
 
@@ -110,6 +111,8 @@ function executeCode(lines) {
     logToConsole(`Error: Missing ${!hasStart ? "START:" : "STOP"} command`);
     return;
   }
+
+  updateTaskProgress("task3", 1);
 
   let index = 0;
 

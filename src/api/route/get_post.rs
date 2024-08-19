@@ -1,11 +1,12 @@
 use warp::Rejection;
 use serde::{Deserialize, Serialize};
+use std::process::Command;
 use std::result::Result;
 use crate::BColors;
+
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Post {
     pub id: u64,
-    pub cmds: Vec<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -17,50 +18,90 @@ pub async fn get_post(id: u64, body: BodyData) -> Result<impl warp::Reply, Rejec
     let colors = BColors::new();
     println!("{}[Rust] Received code: {}{:?}{}", colors.blue, colors.fail, body.code, colors.endc);
 
-    let commands = translate_code_to_threejs(&body.code);
+    // Write code to file
+    let code = body.code;
+    let rust_code = convert_code_to_rust(&code);
 
-    let post = Post {
-        id,
-        cmds: commands,
-    };
+    std::fs::write("./main.rs", rust_code).expect("Unable to write file");
+
+    let output = Command::new("sh")
+        .arg("-c")
+        .arg("cd ../template && cargo rustc -- -C link-arg=--script=./linker.ld && arm-none-eabi-objcopy -O binary target/armv7a-none-eabi/debug/template ./firmware/kernel7.img")
+        .output()
+        .expect("Failed to execute cargo rustc command");
+
+    if !output.status.success() {
+        println!("{}Error: Failed to compile with cargo rustc{}", colors.fail, colors.endc);
+    } else {
+        println!("{}Compilation successful{}", colors.cyan_green, colors.endc);
+    }
+
+    let post = Post { id };
     Ok(warp::reply::json(&post))
 }
 
-fn translate_code_to_threejs(code: &str) -> Vec<String> {
-    let mut cmds = Vec::new();
+fn convert_code_to_rust(code: &str) -> String {
+    let mut rust_code = String::from("fn main() {\n");
 
+    let mut labels = std::collections::HashMap::new();
+    let mut label_counter = 0;
+    
     for line in code.lines() {
-        let trimmed_line = line.trim();
+        let line = line.trim();
+        if line.is_empty() || line.starts_with(';') {
+            continue;
+        }
         
-        if trimmed_line.starts_with("MOV") {
-            cmds.push(format!("setSpeed({});", parse_value(trimmed_line)));
-        } else if trimmed_line.starts_with("FWD") {
-            cmds.push("moveForward();".to_string());
-        } else if trimmed_line.starts_with("TURN R") {
-            cmds.push("turnRight();".to_string());
-        } else if trimmed_line.starts_with("ADD") {
-            cmds.push(format!("increaseSpeed({});", parse_value(trimmed_line)));
-        } else if trimmed_line.starts_with("CMP") {
-            cmds.push(format!("compareSpeed({});", parse_value(trimmed_line)));
-        } else if trimmed_line.starts_with("JEQ") {
-            cmds.push("ifSpeedEqualsJump();".to_string());
-        } else if trimmed_line.starts_with("STOP") {
-            cmds.push("stopMovement();".to_string());
-        } else if trimmed_line.starts_with("JMP") {
-            cmds.push("jumpToEnd();".to_string());
-        } else if trimmed_line.starts_with("START:") || trimmed_line.starts_with("STOP_MOVE:") || trimmed_line.starts_with("END:") {
-            // Handle labels or ignore them
+        if let Some((label, instruction)) = line.split_once(':') {
+            labels.insert(label.trim().to_string(), label_counter);
+            rust_code.push_str(&format!("    // Label: {}\n", label.trim()));
+            label_counter += 1;
+            if instruction.trim().is_empty() {
+                continue;
+            }
+        } else {
+            label_counter += 1;
+        }
+
+        let parts: Vec<&str> = line.split_whitespace().collect();
+        match parts.as_slice() {
+            ["SET", reg, val] => {
+                rust_code.push_str(&format!("    let mut {} = {};\n", reg.to_lowercase(), val));
+            }
+            ["FWD", reg] => {
+                rust_code.push_str(&format!("    move_forward({});\n", reg.to_lowercase()));
+            }
+            ["ADD", reg, val] => {
+                rust_code.push_str(&format!("    {} += {};\n", reg.to_lowercase(), val));
+            }
+            ["BATT", reg] => {
+                rust_code.push_str(&format!("    let {} = check_battery_level();\n", reg.to_lowercase()));
+            }
+            ["LTE", label, reg, val] => {
+                rust_code.push_str(&format!("    if {} <= {} {{ goto_{}(); }}\n", reg.to_lowercase(), val, label.to_lowercase()));
+            }
+            ["GTE", label, reg, val] => {
+                rust_code.push_str(&format!("    if {} >= {} {{ goto_{}(); }}\n", reg.to_lowercase(), val, label.to_lowercase()));
+            }
+            ["EQU", label, reg, val] => {
+                rust_code.push_str(&format!("    if {} == {} {{ goto_{}(); }}\n", reg.to_lowercase(), val, label.to_lowercase()));
+            }
+            ["JMP", label] => {
+                rust_code.push_str(&format!("    goto_{}();\n", label.to_lowercase()));
+            }
+            ["STOP"] => {
+                rust_code.push_str("    stop();\n");
+            }
+            _ => {
+                rust_code.push_str(&format!("    // Unknown instruction: {}\n", line));
+            }
         }
     }
 
-    cmds
-}
+    for (label, _) in labels {
+        rust_code.push_str(&format!("fn goto_{}() {{\n    main();\n}}\n", label.to_lowercase()));
+    }
 
-fn parse_value(line: &str) -> i32 {
-    // Extract the numeric value from a line like "MOV R0, 3"
-    line.split_whitespace()
-        .last()
-        .unwrap_or("0")
-        .parse::<i32>()
-        .unwrap_or(0)
+    rust_code.push_str("}\n");
+    rust_code
 }
