@@ -67,22 +67,27 @@ async function runCode() {
   const code = codebox.value;
   const totalBytes = new TextEncoder().encode(code).length;
   roverConsole.innerHTML = "";
-  
-  let sendcode = code.split("\n").map((line) => line.split(";")[0].trim()).filter((line) => line);
-  
-  const bodyData = {
-    code: sendcode
-  };
 
-  await axios({
-    method: "post",
-    url: "/export/2394567235923",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    data: JSON.stringify(bodyData), 
-  });
-  
+  function devtest() {
+    let sendcode = code
+      .split("\n")
+      .map((line) => line.split(";")[0].trim())
+      .filter((line) => line);
+
+    const bodyData = {
+      code: sendcode,
+    };
+
+    axios({
+      method: "post",
+      url: "/export/2394567235923",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: JSON.stringify(bodyData),
+    });
+  }
+  //devtest();
 
   await LoadingBar(totalBytes);
 
@@ -163,7 +168,8 @@ function executeCode(lines) {
         break;
 
       case "FWD":
-        const regFwd = registers[args[0]] == undefined ? args[0] : registers[args[0]];
+        const regFwd =
+          registers[args[0]] == undefined ? args[0] : registers[args[0]];
         moveForward(regFwd);
         logToConsole(`FWD ${regFwd}`);
         index++;
@@ -181,7 +187,9 @@ function executeCode(lines) {
         const regRem = args[0];
         const valueRem = parseInt(args[1], 10);
         registers[regRem] -= valueRem;
-        logToConsole(`REM ${valueRem} from ${regRem}, now ${registers[regRem]}`);
+        logToConsole(
+          `REM ${valueRem} from ${regRem}, now ${registers[regRem]}`
+        );
         index++;
         break;
 
@@ -243,7 +251,8 @@ function executeCode(lines) {
         break;
 
       case "TURN":
-        const regTurn = registers[args[0]] == undefined ? args[0] : registers[args[0]];
+        const regTurn =
+          registers[args[0]] == undefined ? args[0] : registers[args[0]];
         turnRover(regTurn);
         logToConsole(`TURN ${regTurn}`);
         index++;
