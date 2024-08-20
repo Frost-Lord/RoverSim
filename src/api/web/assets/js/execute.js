@@ -67,6 +67,23 @@ async function runCode() {
   const code = codebox.value;
   const totalBytes = new TextEncoder().encode(code).length;
   roverConsole.innerHTML = "";
+  
+  let sendcode = code.split("\n").map((line) => line.split(";")[0].trim()).filter((line) => line);
+  
+  const bodyData = {
+    code: sendcode
+  };
+
+  await axios({
+    method: "post",
+    url: "/export/2394567235923",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: JSON.stringify(bodyData), 
+  });
+  
+
   await LoadingBar(totalBytes);
 
   endLoop = false;

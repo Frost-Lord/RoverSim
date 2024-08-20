@@ -1,5 +1,6 @@
 #![no_std]
 #![no_main]
+#![allow(warnings)]
 
 use core::panic::PanicInfo;
 use core::arch::asm;
@@ -9,35 +10,71 @@ mod start {
     global_asm!(".section .text._start");
 }
 
-
-#[no_mangle]
-pub extern "C" fn _start() -> ! {
-    let gpio_fsel2 = 1<<3;
-
-    unsafe {
-        core::ptr::write_volatile(0x3F20_0008 as *mut u32, gpio_fsel2);
-    }
-
-    unsafe {
-        loop {
-            // turn PIN21 on
-            core::ptr::write_volatile(0x3F20_001C as *mut u32, 1 << 21);
-
-            for _ in 0..5000 {
-                asm!("nop");
-            }
-
-            // turn PIN21 off
-            core::ptr::write_volatile(0x3F20_0028 as *mut u32, 1 << 21);
-
-            for _ in 0..5000 {
-                asm!("nop");
-            }
-        }
-    }
-}
-
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
     loop {}
 }
+
+#[no_mangle]
+pub extern "C" fn _start() -> ! {
+    static mut r0: i32 = 0;
+    static mut r1: i32 = 0;
+    static mut r2: i32 = 0;
+    static mut r3: i32 = 0;
+    static mut r4: i32 = 0;
+    static mut r5: i32 = 0;
+    static mut r6: i32 = 0;
+    static mut r7: i32 = 0;
+    static mut r8: i32 = 0;
+    static mut r9: i32 = 0;
+
+    fn main() {
+        goto_start();
+    }
+
+
+    fn get_battery_level() -> i32 {
+        100 // Return a dummy value
+    }
+
+
+    fn move_forward(_reg: i32) {
+        // Implementation for moving forward
+    }
+
+    fn goto_start() {
+        unsafe {
+            r0 = 1;
+            r1 = 1;
+            goto_loop();
+        }
+    }
+
+    fn goto_loop() {
+        unsafe {
+            move_forward(r0);
+            r1 += 1;
+            r2 = get_battery_level();
+            if r2 <= 60 { goto_charge(); }
+            if r1 == 10 { goto_end(); }
+            goto_loop();
+        }
+    }
+
+    fn goto_charge() {
+        unsafe {
+            r2 = get_battery_level();
+            if r2 >= 10 { goto_loop(); }
+            goto_charge();
+        }
+    }
+
+    fn goto_end() {
+        unsafe {
+            unsafe { loop {} }
+        }
+    }
+    main();
+    loop {}
+}
+
