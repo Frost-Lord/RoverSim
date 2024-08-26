@@ -84,7 +84,6 @@ The custom control language allows you to control the rover with simple commands
 ### Install ARM GNU toolchain from Arm Developer
 https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads
 
-
 # Ref
 https://science.nasa.gov/resource/curiosity-rover-3d-model/
 
