@@ -84,6 +84,16 @@ The custom control language allows you to control the rover with simple commands
 ### Install ARM GNU toolchain from Arm Developer
 https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads
 
+To perform an API request to `http://localhost:8000/export/2394567235923`, use the following details:
+
+- **Method:** `POST`
+- **URL:** `http://localhost:8000/export/2394567235923`
+- **Headers:**
+  - `Content-Type: application/x-www-form-urlencoded`
+- **Body:**
+  - `code`: `<your_code></your_code>`
+
+Then you copy all the files in `./src/api/template/firmware` onto your raspberry PI! Now your all done!
 
 # Ref
 https://science.nasa.gov/resource/curiosity-rover-3d-model/
