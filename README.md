@@ -77,7 +77,7 @@ The custom control language allows you to control the rover with simple commands
 
 #### For a complete list of commands, refer to the [Custom Rover Control [Language Datasheet](syntax.md).
 
-## Code to running on Raspberry PI! (TODO!)
+## Code to running on Raspberry PI! (BETA!)
 
 ### Install your code on a raspberry PI and run it in real life!
 
