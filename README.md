@@ -13,7 +13,7 @@ Welcome to the **Rover Emulation Project**! This project aims to simulate a rove
   - [Usage](#usage)
   - [Custom Rover Control Language](#custom-rover-control-language)
       - [For a complete list of commands, refer to the \[Custom Rover Control Language Datasheet.](#for-a-complete-list-of-commands-refer-to-the-custom-rover-control-language-datasheet)
-  - [Code to running on Raspberry PI! (TODO!)](#code-to-running-on-raspberry-pi-todo)
+  - [Code to running on Raspberry PI! (BETA!)](#code-to-running-on-raspberry-pi-todo)
     - [Install your code on a raspberry PI and run it in real life!](#install-your-code-on-a-raspberry-pi-and-run-it-in-real-life)
     - [Install ARM GNU toolchain from Arm Developer](#install-arm-gnu-toolchain-from-arm-developer)
 - [Ref](#ref)
